@@ -17,6 +17,8 @@ public class AppServer
         double operand1;
         double operand2;
 
+        boolean neg = false;
+
         System.out.println("Inserisci la porta su cui aprire, 0 per generarla");
         port = scanner.nextInt();
         server.start(port, System.out);
@@ -39,8 +41,8 @@ public class AppServer
 
             else {
 
-                temp = inputString.split("-")[0];
-                if(!temp.equals(inputString)) operator = "-";
+                temp = inputString.split("/")[0];
+                if(!temp.equals(inputString)) operator = "/";
 
                 else {
 
@@ -49,8 +51,8 @@ public class AppServer
 
                     else {
 
-                        temp = inputString.split("/")[0];
-                        if(!temp.equals(inputString)) operator = "/";
+                        temp = inputString.split("-")[0];
+                        if(!temp.equals(inputString)) operator = "-";
 
                         else {
 
@@ -60,8 +62,18 @@ public class AppServer
                     }
                 }
             }
-            
-            if(inputString.split(operator).length > 2) {server.send("[SERVER]: Input non valido - Troppi operandi passati"); continue;}
+            //problema: -5 - 5 da troppi operandi
+            if(inputString.split(operator).length > 2 && operator != "-") {server.send("[SERVER]: Input non valido - Troppi operandi passati"); continue;}
+
+            //problema -4 -4 splittato da {"", "4", "4"}
+            if(operator == "-" && inputString.trim().startsWith("-")) {
+
+                inputString = inputString.replaceFirst("-", "");
+                inputString = inputString.replaceFirst("-", "+");
+                System.out.println(inputString);
+                operator = "\\+";
+                neg = true;
+            }
 
             try {
                 operand1 = Double.parseDouble(inputString.split(operator)[0]);
@@ -71,7 +83,7 @@ public class AppServer
             switch(operator) {
 
                 case "\\+":
-                    server.send("[SERVER]: " + Double.toString(operand1 + operand2));
+                    server.send("[SERVER]: " + Double.toString((neg ? -1 : 1) * (operand1 + operand2)));
                     break;
                 case "-":
                     server.send("[SERVER]: " + Double.toString(operand1 - operand2));
